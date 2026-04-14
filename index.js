@@ -1,18 +1,26 @@
 const express = require('express');
-const sdk = require('@api/render-api');
+const axios = require('axios');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// כאן אנחנו מחברים את ה-SDK עם המפתח שלך
-sdk.auth(process.env.RENDER_API_KEY);
-
+// נתיב ה-GET שביקשו במשימה
 app.get('/', async (req, res) => {
   try {
-    // קריאה ל-Render להביא את רשימת השירותים
-    const { data } = await sdk.listServices({ limit: '20' });
-    res.json(data);
+    // שליחת בקשה ל-API של Render עם ה-API Key שלך
+    const response = await axios.get('https://api.render.com/v1/services', {
+      headers: {
+        'Authorization': `Bearer ${process.env.RENDER_API_KEY}`
+      }
+    });
+    
+    // החזרת רשימת האפליקציות כ-JSON
+    res.json(response.data);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch services", message: err.message });
+    console.error(err);
+    res.status(500).json({ 
+      error: "Failed to fetch services", 
+      details: err.response ? err.response.data : err.message 
+    });
   }
 });
 
